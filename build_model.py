@@ -1,5 +1,7 @@
 import torch
 from model_dta.DTA import DTA
+from model_cci.CCI import CCI
+from model_ppi.PPI import PPI
 from model_dta.DTA_transfer import DTA_transfer
 from model_dta.ESM_Feat_Encoder import ESM_Feat_Encoder as ESM_Feat_Encoder
 from model_dta.ESM1v_Feat_Encoder import ESM1v_Feat_Encoder as ESM1v_Feat_Encoder
@@ -53,7 +55,7 @@ def load_pretrain_infograph(dencoder):
     return dencoder
 
 
-def build_model(args):
+def build_dta_model(args):
     pencoder = getattr(sys.modules[__name__], args.penc+'_Feat_Encoder')(indim=args.esmdim)
     if args.ppipretrain:
         print('Load pretrain PPI')
@@ -76,29 +78,13 @@ def build_model(args):
     model = DTA(pencoder=pencoder, dencoder=dencoder,poutdim=args.pencdim,doutdim=args.dencdim)
     return model
 
-def build_model_check_transfer(args):
-    pencoder = getattr(sys.modules[__name__], args.penc+'_Feat_Encoder')()
-    print('before load weight')
-    print(list(pencoder.named_parameters())[0][0])
-    if args.ppipretrain:
-        print('Load pretrain PPI')
-        pencoder = load_pretrain_ppi(args,pencoder)
-    print('after load weight')
-    print(list(pencoder.named_parameters())[0][0])
-    dencoder = getattr(sys.modules[__name__], args.denc+ '_Encoder')(outdim=args.dencdim)
-    if args.ccipretrain:
-        print('Load pretrain CCI')
-        if args.denc == 'GIN':
-            dencoder = load_pretrain_cci(dencoder)
-            if args.freeze_de:
-                print('Freeze drug encoder')
-                for name, param in list(dencoder.named_parameters()):
-                    param.requires_grad = False
-        elif args.denc == 'Chemberta':
-            dencoder = load_pretrain_Chemberta_CCI(dencoder)
-    elif args.infograph:
-        print('Load pretrain info graph')
-        if args.denc == 'GIN':
-            dencoder = load_pretrain_infograph(dencoder)
-    model = DTA_transfer(pencoder=pencoder, dencoder=dencoder,poutdim=args.pencdim,doutdim=args.dencdim)
+def build_cci_model(args):
+    dencoder1 = getattr(sys.modules[__name__], args.denc + '_Encoder')(outdim=args.dencdim)
+    dencoder2 = getattr(sys.modules[__name__], args.denc + '_Encoder')(outdim=args.dencdim)
+    model = CCI(encoder1=dencoder1,encoder2=dencoder2)
+    return model
+
+def build_PPI_model(args):
+    pencoder = getattr(sys.modules[__name__], args.penc+'_Feat_Encoder')(indim=args.esmdim)
+    model = PPI(encoder=pencoder)
     return model

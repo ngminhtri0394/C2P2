@@ -12,8 +12,8 @@ import numpy as np
 import os
 
 
-from build_model import build_model
-from build_dataset import build_dataset
+from build_model import build_dta_model
+from build_dataset import build_dta_dataset
 from build_data_loader import build_data_loader
 from config import *
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -149,9 +149,9 @@ def test_process(model_file_name, result_file_name):
 
 # python train_test_dta_ppi_cci.py --dataset davis --penc ESM --ppipretrain --pretrainprojection --ccipretrain --denc GIN --setting 2 --epochs 1000 --lr 0.001 --notrain --notest
 
-model = build_model(args)
+model = build_dta_model(args)
 print('Number of param: ', get_number_of_param(model))
-train_data, valid_data, test_data = build_dataset(args)
+train_data, valid_data, test_data = build_dta_dataset(args)
 train_loader, valid_loader, test_loader = build_data_loader(args,train_data,valid_data,test_data)
 basefilepath = build_file_path(args)
 
